@@ -1,0 +1,19 @@
+{
+  "Name": "CTCL's Extras",
+  "Author": "CTCL",
+  "Description": "Some modifications for playing around with People Playground's physics.",
+  "ModVersion": "0.1",
+  "GameVersion": "1.27.5",
+  "ThumbnailPath": "thumb.png",
+  "EntryPoint": "Mod.Mod",
+  "Tags": [
+    "Machine"
+  ],
+  "Scripts": [
+    "liquids.cs",
+    "script.cs"
+  ],
+  "Active": true,
+  "UGCIdentity": null,
+  "CreatorUGCIdentity": null
+}
