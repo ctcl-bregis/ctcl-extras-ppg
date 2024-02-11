@@ -2,7 +2,7 @@
 // File: script.cs
 // Purpose: Main mod functions
 // Created: February 13, 2023
-// Modified: January 13, 2024
+// Modified: February 11, 2024
 
 using System.Linq;
 using UnityEngine;
@@ -80,7 +80,7 @@ namespace Mod
                     AfterSpawn = (Instance) =>
                     {
                         Vector2 newsize = new Vector2(0.85f, 0.35f);
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_shortcannon.png");
+                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_shortcannon.png");
                         Instance.GetComponent<BoxCollider2D>().size = newsize;
                         Instance.GetComponent<MachineGunBehaviour>().barrelPosition = new Vector2(newsize.x / 2, 0);
                         Instance.GetComponent<Rigidbody2D>().mass = 1f;
@@ -93,38 +93,23 @@ namespace Mod
                     }
                 }
             );
-            // 10x Buoyancy Plastic Barrel
-            ModAPI.Register(
-                new Modification()
-                {
-                    OriginalItem = ModAPI.FindSpawnable("Plastic Barrel"),
-                    NameOverride = "10x Buoyancy Plastic Barrel - CE",
-                    DescriptionOverride = "Plastic Barrel but with 10x buoyancy",
-                    CategoryOverride = ModAPI.FindCategory("Misc."),
-                    //ThumbnailOverride = ModAPI.LoadSprite("thumb.png"),
-                    AfterSpawn = (Instance) =>
+            int[] flasksizes = {2, 3, 4, 5, 10, 20, 50, 100};
+            foreach (int size in flasksizes) {
+                ModAPI.Register(
+                    new Modification()
                     {
-                        // FIXME: This somehow changes the vanilla barrel's buoyancy too!?
-                        Instance.GetComponent<PhysicalBehaviour>().Properties.Buoyancy = 30f;
+                        OriginalItem = ModAPI.FindSpawnable("Flask"),
+                        NameOverride = String.Concat(size, "x Capacity Flask - CE"),
+                        DescriptionOverride = String.Concat(size, "x capacity flask"),
+                        CategoryOverride = ModAPI.FindCategory("Chemistry"),
+                        //ThumbnailOverride = ModAPI.LoadSprite("thumb.png"),
+                        AfterSpawn = (Instance) =>
+                        {
+                            Instance.GetComponent<FlaskBehaviour>().Capacity = Liquid.LiterToLiquidUnit * (float)size;
+                        }
                     }
-                }
-            );
-            // TODO: Define flasks in for loop
-            // 2x Flask
-            ModAPI.Register(
-                new Modification()
-                {
-                    OriginalItem = ModAPI.FindSpawnable("Flask"),
-                    NameOverride = "2x Capacity Flask - CE",
-                    DescriptionOverride = "Flask with two times the capacity",
-                    CategoryOverride = ModAPI.FindCategory("Chemistry"),
-                    //ThumbnailOverride = ModAPI.LoadSprite("thumb.png"),
-                    AfterSpawn = (Instance) =>
-                    {
-                        Instance.GetComponent<FlaskBehaviour>().Capacity = Liquid.LiterToLiquidUnit * 2f;
-                    }
-                }
-            );
+                );
+            }
             // Air Brake
             ModAPI.Register(
                 new Modification()
@@ -137,7 +122,7 @@ namespace Mod
                     //ThumbnailOverride = ModAPI.LoadSprite("thumb.png"),
                     AfterSpawn = (Instance) =>
                     {
-                        //Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_airbrake.png");
+                        //Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_airbrake.png");
                         Instance.AddComponent<AirBrakeBehaviour>();
                     }
                 }
@@ -150,13 +135,13 @@ namespace Mod
                     NameOverride = "Cartridge - CE",
                     DescriptionOverride = "156mm Cartridge, good for making blowback-operated cannons",
                     CategoryOverride = ModAPI.FindCategory("Explosives"),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_cartridge.png"),
+                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_cartridge.png"),
                     AfterSpawn = (Instance) =>
                     {
                         Sprite[] spriteArray = new Sprite[] {
-                            ModAPI.LoadSprite("sp_cartridge.png"),
-                            ModAPI.LoadSprite("sp_cartridge_empty.png"),
-                            ModAPI.LoadSprite("sp_bullet.png"),
+                            ModAPI.LoadSprite("sprites/sp_cartridge.png"),
+                            ModAPI.LoadSprite("sprites/sp_cartridge_empty.png"),
+                            ModAPI.LoadSprite("sprites/sp_bullet.png"),
                         };
                         
                         AudioClip[] clips = new AudioClip[] {
@@ -184,13 +169,13 @@ namespace Mod
                     NameOverride = "iPod Touch - CE",
                     DescriptionOverride = "Model A2178",
                     CategoryOverride = ModAPI.FindCategory("Misc."),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_ipod.png"),
+                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_ipod.png"),
                     AfterSpawn = (Instance) =>
                     {
                         Vector2 newsize = new Vector2(ModAPI.PixelSize * 15, ModAPI.PixelSize * 24);
                         Instance.GetComponent<BoxCollider2D>().size = newsize;
 
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_ipod.png");
+                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_ipod.png");
 
                         Instance.GetComponent<BoxCollider2D>().size = newsize;
 
@@ -230,10 +215,10 @@ namespace Mod
                     NameOverride = "Spark Plug - CE",
                     DescriptionOverride = "Creats a small explosion that scales with the amount of Oil stored. All Oil is used on activation.",
                     CategoryOverride = ModAPI.FindCategory("Machinery"),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_sparkplug.png"),
+                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_sparkplug.png"),
                     AfterSpawn = (Instance) =>
                     {
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_sparkplug.png");
+                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_sparkplug.png");
 
                         Instance.GetComponent<PhysicalBehaviour>().Properties = ModAPI.FindPhysicalProperties("Hollow metal");
 
@@ -262,11 +247,11 @@ namespace Mod
                     NameOverride = "Bullet Box - CE",
                     DescriptionOverride = "Box that bullets come out of. Could be used for engines.",
                     CategoryOverride = ModAPI.FindCategory("Firearms"),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_bulletbox.png"),
+                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_bulletbox.png"),
                     AfterSpawn = (Instance) => {
                         float baseforce = 0.5f;
 
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_bulletbox.png");
+                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_bulletbox.png");
                         Instance.GetComponent<PhysicalBehaviour>().Properties = ModAPI.FindPhysicalProperties("Hollow metal");
                         Instance.FixColliders();
 
@@ -306,27 +291,6 @@ namespace Mod
                     }
                 }
             );
-            // Relay
-            ModAPI.Register(
-                new Modification()
-                {
-                    OriginalItem = ModAPI.FindSpawnable("Brick"),
-                    NameOverride = "Relay - CE",
-                    DescriptionOverride = "Block without any propagation delay and nearly no electrical resistance",
-                    CategoryOverride = ModAPI.FindCategory("Misc."),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_relay.png"),
-                    AfterSpawn = (Instance) =>
-                    {
-                        Vector2 newsize = new Vector2(ModAPI.PixelSize * 7f, ModAPI.PixelSize * 7f);
-                        Instance.GetComponent<BoxCollider2D>().size = newsize;
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_relay.png");
-                        Instance.GetComponent<PhysicalBehaviour>().Properties = ModAPI.FindPhysicalProperties("Metal");
-                        Instance.GetComponent<PhysicalBehaviour>().ActivationPropagationDelay = 0f;
-                        Instance.GetComponent<Activations.NodeBehaviour>().DelaySeconds = 0f;
-                        Instance.GetComponent<PhysicalBehaviour>().EnergyWireResistance = 0.0000000001f;
-                    }
-                }
-            );
             // Instant Metal Detector
             ModAPI.Register(
                 new Modification()
@@ -335,7 +299,7 @@ namespace Mod
                     NameOverride = "Instant Metal Detector - CE",
                     DescriptionOverride = "Instant Metal Detector",
                     CategoryOverride = ModAPI.FindCategory("Machinery"),
-                    //ThumbnailOverride = ModAPI.LoadSprite("sp_smallmagnet.png"),
+                    //ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_smallmagnet.png"),
                     AfterSpawn = (Instance) =>
                     {
                         Instance.GetComponent<PhysicalBehaviour>().ActivationPropagationDelay = 0f;
@@ -382,10 +346,10 @@ namespace Mod
                     NameOverride = "High Density Metal Wheel - CE",
                     DescriptionOverride = "Metal wheel that has ten times the mass",
                     CategoryOverride = ModAPI.FindCategory("Misc."),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_highdensitywheel.png"),
+                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_highdensitywheel.png"),
                     AfterSpawn = (Instance) =>
                     {
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_highdensitywheel.png");
+                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_highdensitywheel.png");
                         ModResources.SetMass(Instance, 30f);
                         //Instance.GetComponent<PhysicalBehaviour>().InitialMass = InitialMass * 10f;
                     }
@@ -399,10 +363,10 @@ namespace Mod
                     NameOverride = "Extremely High Density Wheel - CE",
                     DescriptionOverride = "Metal wheel made of an extremely dense material of some sort. Weighs 100,000 kg.",
                     CategoryOverride = ModAPI.FindCategory("Machinery"),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_ehdw.png"),
+                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_ehdw.png"),
                     AfterSpawn = (Instance) =>
                     {
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_ehdw.png");
+                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_ehdw.png");
                         ModResources.SetMass(Instance, 2500f);
                     }
                 }
@@ -474,7 +438,7 @@ namespace Mod
                     NameOverride = "CVT Wheel - CE",
                     DescriptionOverride = "Two wheels connected to each other, one of the wheels get bigger with angular velocity.",
                     CategoryOverride = ModAPI.FindCategory("Machinery"),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_wheel.png"),
+                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_wheel.png"),
                     AfterSpawn = (Instance) =>
                     {
                         GameObject.Destroy(Instance.GetComponent<PistonBehaviour>());
@@ -487,20 +451,22 @@ namespace Mod
                         // For some reason the collider is not the same size as the sprite on spawn
                         Instance.GetComponent<CircleCollider2D>().radius = 0.4857143f;
                         Instance.transform.localScale = new Vector2(1, 1);
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_wheel.png");
+                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_wheel.png");
                         Instance.GetComponent<PhysicalBehaviour>().RefreshOutline();
                         Instance.GetComponent<PhysicalBehaviour>().CalculateCircumference();
+                        Instance.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
                         
                         // Use the existing child object
                         GameObject cvtwheel = Instance.transform.Find("PistonHead").gameObject;
-                        cvtwheel.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_wheel.png");
-                        cvtwheel.GetComponent<PhysicalBehaviour>().RefreshOutline();
-                        cvtwheel.GetComponent<PhysicalBehaviour>().CalculateCircumference();
+                        cvtwheel.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_wheel.png");
                         foreach(Collider2D col in cvtwheel.GetComponents<Collider2D>()) GameObject.Destroy(col);
                         cvtwheel.AddComponent<CircleCollider2D>();
                         cvtwheel.transform.SetParent(Instance.transform);
                         cvtwheel.transform.localScale = new Vector2(1, 1);
                         cvtwheel.GetOrAddComponent<CVTWheelBehaviour>().parentobj = Instance;
+                        cvtwheel.GetComponent<PhysicalBehaviour>().RefreshOutline();
+                        cvtwheel.GetComponent<PhysicalBehaviour>().CalculateCircumference();
+                        cvtwheel.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
                         Vector3 scale = Instance.transform.localScale;
                         cvtwheel.transform.position = new Vector3(Instance.transform.position.x, Instance.transform.position.y, Instance.transform.position.z);
                         FixedJoint2D fjoint = cvtwheel.GetOrAddComponent<FixedJoint2D>();
@@ -521,12 +487,13 @@ namespace Mod
                     //ThumbnailOverride = ModAPI.LoadSprite(""),
                     AfterSpawn = (Instance) =>
                     {
-                        GameObject cvtwheel = ModAPI.CreatePhysicalObject("cvtwheelthing", ModAPI.LoadSprite("sp_wheel.png"));
+                        GameObject cvtwheel = ModAPI.CreatePhysicalObject("cvtwheelthing", ModAPI.LoadSprite("sprites/sp_wheel.png"));
                         foreach(Collider2D col in cvtwheel.GetComponents<Collider2D>()) GameObject.Destroy(col);
                         cvtwheel.AddComponent<CircleCollider2D>();
                         cvtwheel.transform.SetParent(Instance.transform);
                         cvtwheel.GetComponent<PhysicalBehaviour>().RefreshOutline();
                         cvtwheel.GetComponent<PhysicalBehaviour>().CalculateCircumference();
+                        cvtwheel.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
                         // The driven is slightly smaller to be able to differeniate between the two
                         cvtwheel.transform.localScale = new Vector2(0.9f, 0.9f);
                         cvtwheel.AddComponent<CentrifugalClutchBehaviour>();
@@ -550,7 +517,7 @@ namespace Mod
                     NameOverride = "Cylinder - CE",
                     DescriptionOverride = "A cylinder with a piston.",
                     CategoryOverride = ModAPI.FindCategory("Misc."),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_cylinder.png"),
+                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_cylinder.png"),
                     AfterSpawn = (Instance) =>
                     {
                         GameObject.Destroy(Instance.GetComponent<PistonBehaviour>());
@@ -561,9 +528,10 @@ namespace Mod
                                                 
                         // Size used by both colliders
                         Vector2 newsize = new Vector2(ModAPI.PixelSize * 59f, ModAPI.PixelSize * 9f);
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_cylinder.png");
+                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_cylinder.png");
                         Instance.GetComponent<PhysicalBehaviour>().RefreshOutline();
                         Instance.GetComponent<PhysicalBehaviour>().CalculateCircumference();
+                        Instance.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
                         Instance.GetComponent<BoxCollider2D>().offset = new Vector2(ModAPI.PixelSize * 0f, ModAPI.PixelSize * -13f);
                         Instance.GetComponent<BoxCollider2D>().size = newsize;
                         // Side 2 collider
@@ -581,9 +549,10 @@ namespace Mod
                         foreach(Collider2D col in piston.GetComponents<Collider2D>()) GameObject.Destroy(col);
                         BoxCollider2D pistonbc = piston.AddComponent<BoxCollider2D>();
                         pistonbc.size = new Vector2(ModAPI.PixelSize * 27f, ModAPI.PixelSize * 15f);
-                        piston.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_piston.png");
+                        piston.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_piston.png");
                         piston.GetComponent<PhysicalBehaviour>().RefreshOutline();
                         piston.GetComponent<PhysicalBehaviour>().CalculateCircumference();
+                        piston.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
                         piston.GetComponent<Transform>().position = Instance.transform.position + (Instance.transform.right * (ModAPI.PixelSize * -8.75f));
                         piston.GetComponent<Transform>().SetParent(Instance.transform);
                         piston.GetComponent<PhysicalBehaviour>().Properties = ModAPI.FindPhysicalProperties("Metal");
@@ -620,7 +589,7 @@ namespace Mod
                     NameOverride = "Signal Wheel - CE",
                     DescriptionOverride = "A wheel that outputs a small amount of electric charge proportional to its angular velocity. Intended to be used with the Scalable Metal Detector",
                     CategoryOverride = ModAPI.FindCategory("Machinery"),
-                    //ThumbnailOverride = ModAPI.LoadSprite("sp_cylinder.png"),
+                    //ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_cylinder.png"),
                     AfterSpawn = (Instance) =>
                     {
                         Instance.AddComponent<AngularVelocitySignalBehaviour>();
@@ -635,7 +604,7 @@ namespace Mod
                     NameOverride = "Scalable Metal Detector - CE",
                     DescriptionOverride = "Scalable Metal Detector",
                     CategoryOverride = ModAPI.FindCategory("Machinery"),
-                    //ThumbnailOverride = ModAPI.LoadSprite("sp_smallmagnet.png"),
+                    //ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_smallmagnet.png"),
                     AfterSpawn = (Instance) =>
                     {
                         Instance.AddComponent<ScalableDetectorBehaviour>();
@@ -650,12 +619,13 @@ namespace Mod
                     NameOverride = "Box Pulse Drum - CE",
                     DescriptionOverride = "Pulse drum but in a more convienent rectangle shape",
                     CategoryOverride = ModAPI.FindCategory("Machinery"),
-                    ThumbnailOverride = ModAPI.LoadSprite("sp_boxdrumsmall.png"),
+                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_boxdrumsmall.png"),
                     AfterSpawn = (Instance) =>
                     {
-                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sp_boxdrumsmall.png");
+                        Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_boxdrumsmall.png");
                         foreach(Collider2D col in Instance.GetComponents<Collider2D>()) GameObject.Destroy(col);
                         Instance.AddComponent<BoxCollider2D>().size = new Vector2(ModAPI.PixelSize * 26f, ModAPI.PixelSize * 16f);
+                        Instance.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
                         PulseDrumBehaviour pdb = Instance.GetComponent<PulseDrumBehaviour>();
                         
                         pdb.SpreadAngle = 0.1f;
@@ -667,7 +637,6 @@ namespace Mod
     }
     public static class ModResources
     {
-        // Just a simpler way to set mass
         public static void SetMass(GameObject Instance, float Mass) {
             var phys = Instance.GetComponent<PhysicalBehaviour>();
             phys.TrueInitialMass = Mass;
@@ -860,7 +829,6 @@ namespace Mod
             }
         }
     }
-    
     public class SparkPlugBehaviour : MonoBehaviour {
         FlaskBehaviour fb;
         [SkipSerialisation]
@@ -911,7 +879,6 @@ namespace Mod
                     ex.Range = explosionrange;
 
                     ExplosionCreator.Explode(ex);
-
                     // Add particle effects for a "fake" explosion
                     ModAPI.CreateParticleEffect("Flash", transform.position + transform.right * explosionoffset);
                     ias.Play();
@@ -922,12 +889,10 @@ namespace Mod
             // Red
             else if ((ch == 1) && (capacitymult < 1f)) {
                 capacitymult += 0.1f;
-                Debug.Log(capacitymult);
             }
             // Blue
             else if ((ch == 2) && (capacitymult >= 0.2f)) {
                 capacitymult -= 0.1f;
-                Debug.Log(capacitymult);
             }
         }
 
@@ -1126,6 +1091,7 @@ namespace Mod
 
             GetComponent<SpriteRenderer>().sprite = sprites[1];
             Utils.FixColliders(gameObject);
+            GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
             // As the "bullet" left the case, the object should have less weight
             GetComponent<PhysicalBehaviour>().TrueInitialMass = 1f;
             GetComponent<PhysicalBehaviour>().rigidbody.mass = 1f;

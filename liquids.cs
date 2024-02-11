@@ -2,13 +2,14 @@
 // File: script.cs
 // Purpose: Liquids added by the mod
 // Created: September 23, 2023
-// Modified: January 13, 2024
+// Modified: February 11, 2024
 
 using UnityEngine;
 using System.Collections;
 
 namespace Liquids
 {
+    // Not physics related but I added this to explore the ability to add liquids to the game
     public class BloodRemoverSyringe : SyringeBehaviour {
         public override string GetLiquidID() => BloodRemover.ID;
         
