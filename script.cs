@@ -2,7 +2,7 @@
 // File: script.cs
 // Purpose: Main mod functions
 // Created: February 13, 2023
-// Modified: February 11, 2024
+// Modified: February 13, 2024
 
 using System.Linq;
 using UnityEngine;
@@ -20,6 +20,7 @@ namespace Mod
     {
         public static void Main()
         {
+            // This may be removed soon
             ModAPI.RegisterLiquid(BloodRemoverSyringe.BloodRemover.ID, new BloodRemoverSyringe.BloodRemover());
             ModAPI.Register(
                 new Modification()
@@ -266,7 +267,6 @@ namespace Mod
                         Instance.GetComponent<FirearmBehaviour>().InitialInaccuracy = 0.001f;
                         Instance.GetComponent<FirearmBehaviour>().BulletsPerShot = 1;
 
-
                         ca.Damage = 800.0f;
                         ca.Recoil = 4.0f;
                         ca.ImpactForce = 2f;
@@ -351,7 +351,6 @@ namespace Mod
                     {
                         Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_highdensitywheel.png");
                         ModResources.SetMass(Instance, 30f);
-                        //Instance.GetComponent<PhysicalBehaviour>().InitialMass = InitialMass * 10f;
                     }
                 }
             );
@@ -401,21 +400,6 @@ namespace Mod
                     }
                 }
             );
-            // Electromagnet
-            //ModAPI.Register(
-            //    new Modification()
-             //   {
-            //        OriginalItem = ModAPI.FindSpawnable("Rod"),
-            //        NameOverride = "Electromagnet - CE",
-            //        DescriptionOverride = "Magnet that pulls metal objects towards it with electricity",
-            //        CategoryOverride = ModAPI.FindCategory("Machinery"),
-            //        AfterSpawn = (Instance) =>
-            //        {
-            //            Instance.AddComponent<ElectromagnetBehaviour>();
-            //        
-            //        }
-            //    }
-            //);        
             // High Friction Metal Wheel
             ModAPI.Register(
                 new Modification()
@@ -487,6 +471,7 @@ namespace Mod
                     //ThumbnailOverride = ModAPI.LoadSprite(""),
                     AfterSpawn = (Instance) =>
                     {
+                        // TO-DO: Make this derive from a piston instead of trying to make a child object
                         GameObject cvtwheel = ModAPI.CreatePhysicalObject("cvtwheelthing", ModAPI.LoadSprite("sprites/sp_wheel.png"));
                         foreach(Collider2D col in cvtwheel.GetComponents<Collider2D>()) GameObject.Destroy(col);
                         cvtwheel.AddComponent<CircleCollider2D>();
@@ -505,7 +490,6 @@ namespace Mod
                         HingeJoint2D hjoint = cvtwheel.GetOrAddComponent<HingeJoint2D>();
                         hjoint.connectedBody = Instance.GetComponent<Rigidbody2D>();
                         
-                        GameObject.Destroy(cvtwheel.GetComponent<Optout>());
                     }
                 }
             );
@@ -570,11 +554,8 @@ namespace Mod
                         slider.autoConfigureAngle = false;
                         slider.angle = 0f;
                         slider.enableCollision = true;
-                        //FrictionJoint2D fj2d = piston.AddComponent<FrictionJoint2D>();
-                        //fj2d.connectedBody = Instance.GetComponent<Rigidbody2D>();
-                        //fj2d.maxForce = 2000f;
                         
-                        // Set the mass of the wall
+                        // Set the mass of the walls
                         ModResources.SetMass(Instance, 12f);
                         // Set the mass of the piston
                         ModResources.SetMass(piston, 5f);
@@ -627,7 +608,6 @@ namespace Mod
                         Instance.AddComponent<BoxCollider2D>().size = new Vector2(ModAPI.PixelSize * 26f, ModAPI.PixelSize * 16f);
                         Instance.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
                         PulseDrumBehaviour pdb = Instance.GetComponent<PulseDrumBehaviour>();
-                        
                         pdb.SpreadAngle = 0.1f;
                         pdb.EmitterSize = 0.2f;
                     }
@@ -656,7 +636,6 @@ namespace Mod
     public class ScalableDetectorBehaviour : MonoBehaviour {
         PhysicalBehaviour phys;
         Activations.NodeBehaviour node;
-    
         // 1f = 1 second
         float maxtime = 0.5f;
         float maxcharge = 100f;
@@ -681,10 +660,8 @@ namespace Mod
     public class AirBrakeBehaviour : MonoBehaviour {
         Rigidbody2D rb2d;
         PhysicalBehaviour phys;
-
         float effective_base = 1f;
         float effective_cap = 50000f;
-
         bool enable;
 
         void Start() {
@@ -726,7 +703,6 @@ namespace Mod
         }
         void Use(ActivationPropagation pp) {
             var ch = pp.Channel;
-            //Debug.Log(ch);
             // Red
             if (ch == 1) {
                 transform.localScale -= scalechange;
@@ -738,7 +714,6 @@ namespace Mod
                 transform.localScale += scalechange;
                 GetComponent<PhysicalBehaviour>().RecalculateMassBasedOnSize();
             }
-            // Don't do anything if ch == 0 (green)
         }
     }
     public class CVTWheelBehaviour : MonoBehaviour {
@@ -815,11 +790,9 @@ namespace Mod
             angvel = Mathf.Abs(prb2d.angularVelocity);
             
             if (angvel >= engagevel) {
-                Debug.Log("engage");
                 hj2d.enabled = false;
                 fj2d.enabled = true;
             } else {
-                Debug.Log("disengage");
                 hj2d.enabled = true;
                 fj2d.enabled = false;
             }
@@ -998,9 +971,7 @@ namespace Mod
         void Start() {
             pb = GetComponent<PhysicalBehaviour>();
             rb = GetComponent<Rigidbody2D>();
-
             rb.angularDrag = angdrag;
-
         }
 
         void Update() {
@@ -1022,7 +993,6 @@ namespace Mod
         void Start() {
             pb = GetComponent<PhysicalBehaviour>();
             rb = GetComponent<Rigidbody2D>();
-
             rb.angularDrag = angdrag;
         }
 
@@ -1093,9 +1063,7 @@ namespace Mod
             Utils.FixColliders(gameObject);
             GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
             // As the "bullet" left the case, the object should have less weight
-            GetComponent<PhysicalBehaviour>().TrueInitialMass = 1f;
-            GetComponent<PhysicalBehaviour>().rigidbody.mass = 1f;
-            GetComponent<PhysicalBehaviour>().InitialMass = 1f;
+            ModResources.SetMass(gameObject, 1f);
 
             // Create the "bullet" object
             AssetItem = ModAPI.FindSpawnable("Knife");
@@ -1104,9 +1072,7 @@ namespace Mod
             // After spawning, rotate the object to the correct position
             projectile.GetComponent<Transform>().eulerAngles += new Vector3(0f, 0f, -90f);
             projectile.GetComponent<PhysicalBehaviour>().SpawnSpawnParticles = false;
-            projectile.GetComponent<PhysicalBehaviour>().TrueInitialMass = 2f;
-            projectile.GetComponent<PhysicalBehaviour>().rigidbody.mass = 2f;
-            projectile.GetComponent<PhysicalBehaviour>().InitialMass = 2f;
+            ModResources.SetMass(projectile, 2f);
             projectile.GetComponent<SpriteRenderer>().sprite = sprites[2];
             projectile.GetComponent<PhysicalBehaviour>().RefreshOutline();
             projectile.FixColliders();
