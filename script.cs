@@ -2,7 +2,7 @@
 // File: script.cs
 // Purpose: Main mod functions
 // Created: February 13, 2023
-// Modified: February 13, 2024
+// Modified: March 7, 2024
 
 using System.Linq;
 using UnityEngine;
@@ -12,47 +12,12 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
-using Liquids;
-
 namespace Mod
 {
     public class Mod
     {
         public static void Main()
         {
-            // This may be removed soon
-            ModAPI.RegisterLiquid(BloodRemoverSyringe.BloodRemover.ID, new BloodRemoverSyringe.BloodRemover());
-            ModAPI.Register(
-                new Modification()
-                {
-                    OriginalItem = ModAPI.FindSpawnable("Acid Syringe"),
-                    NameOverride = "Blood Remover Syringe - CE",
-                    DescriptionOverride = "Some sort of serum that removes blood from limbs.",
-                    CategoryOverride = ModAPI.FindCategory("Chemistry"),
-                    //ThumbnailOverride = ModAPI.LoadSprite("housing.png"),
-                    AfterSpawn = (Instance) =>
-                    {
-                        UnityEngine.Object.Destroy(Instance.GetComponent<SyringeBehaviour>());
-                        Instance.GetOrAddComponent<BloodRemoverSyringe>();
-                    }
-                }
-            );
-            ModAPI.Register(
-                new Modification()
-                {
-                    OriginalItem = ModAPI.FindSpawnable("Acid Syringe"),
-                    NameOverride = "Blood Syringe - CE",
-                    DescriptionOverride = "Syringe with blood since the game does not have one already.",
-                    CategoryOverride = ModAPI.FindCategory("Chemistry"),
-                    //ThumbnailOverride = ModAPI.LoadSprite("housing.png"),
-                    AfterSpawn = (Instance) =>
-                    {
-                        UnityEngine.Object.Destroy(Instance.GetComponent<SyringeBehaviour>());
-                        var bs = Instance.GetOrAddComponent<BloodSyringe>();
-                        bs.TransferRate = 100f; // 1000x more
-                    }
-                }
-            );
             // Activation Resizable Housing
             ModAPI.Register(
                 new Modification()
@@ -85,15 +50,10 @@ namespace Mod
                         Instance.GetComponent<BoxCollider2D>().size = newsize;
                         Instance.GetComponent<MachineGunBehaviour>().barrelPosition = new Vector2(newsize.x / 2, 0);
                         Instance.GetComponent<Rigidbody2D>().mass = 1f;
-                        //ca.Damage = 20.0f;
-                        //ca.Recoil = 4.0f;
-                        //ca.ImpactForce = 0.55f;
-                        //ca.StartSpeed = 200f;
-                        //ca.PenetrationRandomAngleMultiplier = 0.0001f;
-                        //Instance.GetComponent<FirearmBehaviour>().Cartridge = ca;
                     }
                 }
             );
+            // Procedurally generated flasks
             int[] flasksizes = {2, 3, 4, 5, 10, 20, 50, 100};
             foreach (int size in flasksizes) {
                 ModAPI.Register(
@@ -204,7 +164,6 @@ namespace Mod
                         CollideEvent.AddListener(Ping);
 
                         Instance.GetComponent<ActOnCollide>().Actions = CollideEvent;
-                        
                     }
                 }
             );
@@ -258,8 +217,6 @@ namespace Mod
 
                         Instance.GetComponent<PhysicalBehaviour>().ActivationPropagationDelay = 0f;
 
-                        Cartridge ca = ModAPI.FindCartridge("50 BMG");
-
                         Instance.GetComponent<FirearmBehaviour>().barrelPosition = new Vector2(ModAPI.PixelSize * 4.5f, 0f);
                         Instance.GetComponent<FirearmBehaviour>().barrelDirection = new Vector2(1f, 0f);
                         Instance.GetComponent<FirearmBehaviour>().EjectShells = false;
@@ -267,6 +224,7 @@ namespace Mod
                         Instance.GetComponent<FirearmBehaviour>().InitialInaccuracy = 0.001f;
                         Instance.GetComponent<FirearmBehaviour>().BulletsPerShot = 1;
 
+                        Cartridge ca = ModAPI.FindCartridge("50 BMG");
                         ca.Damage = 800.0f;
                         ca.Recoil = 4.0f;
                         ca.ImpactForce = 2f;
@@ -384,36 +342,6 @@ namespace Mod
                     }
                 }
             );
-            // Activation Meter
-            ModAPI.Register(
-                new Modification()
-                {
-                    OriginalItem = ModAPI.FindSpawnable("Thermometer"),
-                    NameOverride = "Activation Meter - CE",
-                    DescriptionOverride = "Shows how many activations per second.",
-                    CategoryOverride = ModAPI.FindCategory("Machinery"),
-                    AfterSpawn = (Instance) =>
-                    {
-                        ActivationMeterBehaviour behaviour = Instance.GetOrAddComponent<ActivationMeterBehaviour>();
-                        behaviour.tm = Instance.GetComponent<ThermometerBehaviour>().TextMesh;
-                        GameObject.Destroy(Instance.GetComponent<ThermometerBehaviour>());
-                    }
-                }
-            );
-            // High Friction Metal Wheel
-            ModAPI.Register(
-                new Modification()
-                {
-                    OriginalItem = ModAPI.FindSpawnable("Metal Wheel"),
-                    NameOverride = "High Friction Metal Wheel - CE",
-                    DescriptionOverride = "Metal wheel that probably has more friction",
-                    CategoryOverride = ModAPI.FindCategory("Misc."),
-                    AfterSpawn = (Instance) =>
-                    {
-                        Instance.GetComponent<PhysicsMaterial2D>().friction = 100;
-                    }
-                }
-            );
             // CVT wheel
             ModAPI.Register(
                 new Modification()
@@ -436,9 +364,7 @@ namespace Mod
                         Instance.GetComponent<CircleCollider2D>().radius = 0.4857143f;
                         Instance.transform.localScale = new Vector2(1, 1);
                         Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_wheel.png");
-                        Instance.GetComponent<PhysicalBehaviour>().RefreshOutline();
-                        Instance.GetComponent<PhysicalBehaviour>().CalculateCircumference();
-                        Instance.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
+                        ModResources.colliderfix(Instance);
                         
                         // Use the existing child object
                         GameObject cvtwheel = Instance.transform.Find("PistonHead").gameObject;
@@ -448,9 +374,7 @@ namespace Mod
                         cvtwheel.transform.SetParent(Instance.transform);
                         cvtwheel.transform.localScale = new Vector2(1, 1);
                         cvtwheel.GetOrAddComponent<CVTWheelBehaviour>().parentobj = Instance;
-                        cvtwheel.GetComponent<PhysicalBehaviour>().RefreshOutline();
-                        cvtwheel.GetComponent<PhysicalBehaviour>().CalculateCircumference();
-                        cvtwheel.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
+                        ModResources.colliderfix(cvtwheel);
                         Vector3 scale = Instance.transform.localScale;
                         cvtwheel.transform.position = new Vector3(Instance.transform.position.x, Instance.transform.position.y, Instance.transform.position.z);
                         FixedJoint2D fjoint = cvtwheel.GetOrAddComponent<FixedJoint2D>();
@@ -476,9 +400,7 @@ namespace Mod
                         foreach(Collider2D col in cvtwheel.GetComponents<Collider2D>()) GameObject.Destroy(col);
                         cvtwheel.AddComponent<CircleCollider2D>();
                         cvtwheel.transform.SetParent(Instance.transform);
-                        cvtwheel.GetComponent<PhysicalBehaviour>().RefreshOutline();
-                        cvtwheel.GetComponent<PhysicalBehaviour>().CalculateCircumference();
-                        cvtwheel.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
+                        ModResources.colliderfix(cvtwheel);
                         // The driven is slightly smaller to be able to differeniate between the two
                         cvtwheel.transform.localScale = new Vector2(0.9f, 0.9f);
                         cvtwheel.AddComponent<CentrifugalClutchBehaviour>();
@@ -489,7 +411,6 @@ namespace Mod
                         fjoint.connectedBody = Instance.GetComponent<Rigidbody2D>();
                         HingeJoint2D hjoint = cvtwheel.GetOrAddComponent<HingeJoint2D>();
                         hjoint.connectedBody = Instance.GetComponent<Rigidbody2D>();
-                        
                     }
                 }
             );
@@ -573,7 +494,9 @@ namespace Mod
                     //ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_cylinder.png"),
                     AfterSpawn = (Instance) =>
                     {
-                        Instance.AddComponent<AngularVelocitySignalBehaviour>();
+                        AngularVelocityChargeBehaviour avcb = Instance.AddComponent<AngularVelocityChargeBehaviour>();
+                        avcb.mult = 0.1f;
+                        avcb.angdrag = 1f;
                     }
                 }
             );
@@ -606,7 +529,7 @@ namespace Mod
                         Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_boxdrumsmall.png");
                         foreach(Collider2D col in Instance.GetComponents<Collider2D>()) GameObject.Destroy(col);
                         Instance.AddComponent<BoxCollider2D>().size = new Vector2(ModAPI.PixelSize * 26f, ModAPI.PixelSize * 16f);
-                        Instance.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
+                        ModResources.colliderfix(Instance);
                         PulseDrumBehaviour pdb = Instance.GetComponent<PulseDrumBehaviour>();
                         pdb.SpreadAngle = 0.1f;
                         pdb.EmitterSize = 0.2f;
@@ -630,6 +553,12 @@ namespace Mod
         }
         public static float rpm2angvel(float rpm) {
             return rpm * (60f / (2f * Mathf.PI));
+        }
+        public static void colliderfix(GameObject Instance) {
+            var phys = Instance.GetComponent<PhysicalBehaviour>();
+            phys.GetComponent<PhysicalBehaviour>().RefreshOutline();
+            phys.GetComponent<PhysicalBehaviour>().CalculateCircumference();
+            phys.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
         }
     }
     // Behavior is spelled as Behaviour to stay consistent with the game's class names
@@ -660,7 +589,9 @@ namespace Mod
     public class AirBrakeBehaviour : MonoBehaviour {
         Rigidbody2D rb2d;
         PhysicalBehaviour phys;
+        [SkipSerialisation]
         float effective_base = 1f;
+        [SkipSerialisation]
         float effective_cap = 50000f;
         bool enable;
 
@@ -777,6 +708,7 @@ namespace Mod
         public float engagevel = ModResources.rpm2angvel(220f);
         [SkipSerialisation]
         public float basesize = 0.1f;
+        [SkipSerialisation]
         float angvel;
 
         void Start() {
@@ -812,6 +744,7 @@ namespace Mod
         [SkipSerialisation]
         public float basecapacity = 0.5f;
         // This is for keeping track of how much it can accept and not for customizing base capacity. Defaults to the lowest value of 0.1.
+        [SkipSerialisation]
         float capacitymult = 0.1f;
         // Calculated before explosion
         float appforce;
@@ -961,12 +894,15 @@ namespace Mod
     public class AngularVelocityChargeBehaviour : MonoBehaviour {
         PhysicalBehaviour pb;
         Rigidbody2D rb;
+        [SkipSerialisation]
         float angvel;
 
         // Multiplier
-        float mult = 1f;
+        [SkipSerialisation]
+        public float mult = 1f;
         // Angular Drag
-        float angdrag = 10f;
+        [SkipSerialisation]
+        public float angdrag = 10f;
 
         void Start() {
             pb = GetComponent<PhysicalBehaviour>();
@@ -977,65 +913,6 @@ namespace Mod
         void Update() {
             angvel = rb.angularVelocity;
             pb.Charge = Mathf.Abs(angvel) * mult;
-        }
-    }
-    // Same thing as above but with no (normal amount) drag and a much smaller power output
-    public class AngularVelocitySignalBehaviour : MonoBehaviour {
-        PhysicalBehaviour pb;
-        Rigidbody2D rb;
-        float angvel;
-
-        // Multiplier
-        float mult = 0.01f;
-        // Angular Drag
-        float angdrag = 0.05f;
-
-        void Start() {
-            pb = GetComponent<PhysicalBehaviour>();
-            rb = GetComponent<Rigidbody2D>();
-            rb.angularDrag = angdrag;
-        }
-
-        void Update() {
-            angvel = rb.angularVelocity;
-            pb.Charge = Mathf.Abs(angvel) * mult;
-        }
-    }
-    public class ActivationMeterBehaviour : MonoBehaviour {
-        public TextMeshPro tm;
-        Stack counts = new Stack(3);
-        int[] arrcounts = new int[3];
-        int sum = 0;
-        int counter = 0;
-        int avg = 0;
-
-        void Start() {
-            StartCoroutine(ActCounter());
-        }
-
-        void Update() {
-            tm.enabled = true;
-            if (counts.Count > 2) {
-                avg = 0;
-            } else {
-                for (int i = 0; i < arrcounts.Length; i++) {
-                    sum += arrcounts[i];
-                }
-                avg = Mathf.RoundToInt(sum / arrcounts.Length);
-            }
-            tm.text = avg + "/s";
-        }
-
-        void Use() {
-            counter += 1;
-        }
-
-        IEnumerator ActCounter() {
-            while (true) {
-                counts.Push(counter);
-                counter = 0;
-                yield return new WaitForSeconds(1.0f);
-            }
         }
     }
     public class CartridgeBehaviour : MonoBehaviour {
@@ -1061,7 +938,7 @@ namespace Mod
 
             GetComponent<SpriteRenderer>().sprite = sprites[1];
             Utils.FixColliders(gameObject);
-            GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
+            ModResources.colliderfix(gameObject);
             // As the "bullet" left the case, the object should have less weight
             ModResources.SetMass(gameObject, 1f);
 
@@ -1074,8 +951,7 @@ namespace Mod
             projectile.GetComponent<PhysicalBehaviour>().SpawnSpawnParticles = false;
             ModResources.SetMass(projectile, 2f);
             projectile.GetComponent<SpriteRenderer>().sprite = sprites[2];
-            projectile.GetComponent<PhysicalBehaviour>().RefreshOutline();
-            projectile.FixColliders();
+            ModResources.colliderfix(projectile);
             projectile.transform.position += transform.right * 0.2f;
 
             // Add DebrisComponent so both objects can be removed on "Clear debris"
@@ -1094,12 +970,5 @@ namespace Mod
             ias.Play();
             globalinstance.RemoveAudioSource(ias);
        }
-
-        void Update() {
-            // "electronic" firing
-            if (pb.Charge > 10)  {
-                 pb.ForceSendUse();
-            }
-        }
     }
 }
