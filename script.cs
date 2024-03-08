@@ -88,40 +88,6 @@ namespace Mod
                     }
                 }
             );
-            // Cartridge
-            ModAPI.Register(
-                new Modification()
-                {
-                    OriginalItem = ModAPI.FindSpawnable("Small I-Beam"),
-                    NameOverride = "Cartridge - CE",
-                    DescriptionOverride = "156mm Cartridge, good for making blowback-operated cannons",
-                    CategoryOverride = ModAPI.FindCategory("Explosives"),
-                    ThumbnailOverride = ModAPI.LoadSprite("sprites/sp_cartridge.png"),
-                    AfterSpawn = (Instance) =>
-                    {
-                        Sprite[] spriteArray = new Sprite[] {
-                            ModAPI.LoadSprite("sprites/sp_cartridge.png"),
-                            ModAPI.LoadSprite("sprites/sp_cartridge_empty.png"),
-                            ModAPI.LoadSprite("sprites/sp_bullet.png"),
-                        };
-                        
-                        AudioClip[] clips = new AudioClip[] {
-                            ModAPI.LoadSound("sfx/very-small-explosion-01.wav"),
-                            ModAPI.LoadSound("sfx/very-small-explosion-02.wav"),
-                            ModAPI.LoadSound("sfx/very-small-explosion-03.wav"),
-                            ModAPI.LoadSound("sfx/very-small-explosion-04.wav")
-                        };
-                        
-                        Instance.GetComponent<SpriteRenderer>().sprite = spriteArray[0];
-                        Instance.FixColliders();
-                        Instance.GetComponent<PolygonCollider2D>().offset = new Vector2(0f, 0f);
-
-                        var cb = Instance.AddComponent<CartridgeBehaviour>();
-                        cb.sprites = spriteArray;
-                        cb.clips = clips;
-                    }
-                }
-            );
             // iPod Touch
             ModAPI.Register(
                 new Modification()
@@ -434,9 +400,7 @@ namespace Mod
                         // Size used by both colliders
                         Vector2 newsize = new Vector2(ModAPI.PixelSize * 59f, ModAPI.PixelSize * 9f);
                         Instance.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_cylinder.png");
-                        Instance.GetComponent<PhysicalBehaviour>().RefreshOutline();
-                        Instance.GetComponent<PhysicalBehaviour>().CalculateCircumference();
-                        Instance.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
+                        ModResources.colliderfix(Instance);
                         Instance.GetComponent<BoxCollider2D>().offset = new Vector2(ModAPI.PixelSize * 0f, ModAPI.PixelSize * -13f);
                         Instance.GetComponent<BoxCollider2D>().size = newsize;
                         // Side 2 collider
@@ -455,9 +419,7 @@ namespace Mod
                         BoxCollider2D pistonbc = piston.AddComponent<BoxCollider2D>();
                         pistonbc.size = new Vector2(ModAPI.PixelSize * 27f, ModAPI.PixelSize * 15f);
                         piston.GetComponent<SpriteRenderer>().sprite = ModAPI.LoadSprite("sprites/sp_piston.png");
-                        piston.GetComponent<PhysicalBehaviour>().RefreshOutline();
-                        piston.GetComponent<PhysicalBehaviour>().CalculateCircumference();
-                        piston.GetComponent<PhysicalBehaviour>().BakeColliderGridPoints();
+                        ModResources.colliderfix(piston);
                         piston.GetComponent<Transform>().position = Instance.transform.position + (Instance.transform.right * (ModAPI.PixelSize * -8.75f));
                         piston.GetComponent<Transform>().SetParent(Instance.transform);
                         piston.GetComponent<PhysicalBehaviour>().Properties = ModAPI.FindPhysicalProperties("Metal");
@@ -856,20 +818,6 @@ namespace Mod
             pb.ForceSendUse();
         }
     }
-    public class EMPActivationBehaviour : MonoBehaviour {
-        PhysicalBehaviour pb;
-
-        void Start() {
-            pb = GetComponent<PhysicalBehaviour>();
-        }
-
-        void OnEMPHit() {
-            // In case a GameObject has both this component and another EMP-related component so it does not loop and crash the game
-            if (!((GetComponent<EMPBehaviour>()) || (GetComponent<ScalableEMPBehaviour>()))) {
-                pb.ForceSendUse();
-            }
-        }
-    }
     public class ScalableEMPBehaviour : MonoBehaviour {
         PhysicalBehaviour pb;
         EMPBehaviour eb;
@@ -914,61 +862,5 @@ namespace Mod
             angvel = rb.angularVelocity;
             pb.Charge = Mathf.Abs(angvel) * mult;
         }
-    }
-    public class CartridgeBehaviour : MonoBehaviour {
-        [SkipSerialisation]
-        public Sprite[] sprites = null;
-        [SkipSerialisation]
-        public AudioClip[] clips = null;
-        [SkipSerialisation]
-        PhysicalBehaviour pb;
-        [SkipSerialisation]
-        public Global globalinstance;
-        SpawnableAsset AssetItem;
-        GameObject projectile;
-
-        void Start() {
-            pb = GetComponent<PhysicalBehaviour>();
-            this.globalinstance = UnityEngine.Object.FindObjectsOfType<Global>()[0];
-        }
-
-        void Use() {
-            // The behavior removes itself so the object cannot explode again
-            Destroy (this);
-
-            GetComponent<SpriteRenderer>().sprite = sprites[1];
-            Utils.FixColliders(gameObject);
-            ModResources.colliderfix(gameObject);
-            // As the "bullet" left the case, the object should have less weight
-            ModResources.SetMass(gameObject, 1f);
-
-            // Create the "bullet" object
-            AssetItem = ModAPI.FindSpawnable("Knife");
-            projectile = UnityEngine.Object.Instantiate(AssetItem.Prefab, transform.position, transform.rotation);
-            // Object is started facing the wrong direction (up if the cartridge is facing right) because idk how to modify sharpaxis
-            // After spawning, rotate the object to the correct position
-            projectile.GetComponent<Transform>().eulerAngles += new Vector3(0f, 0f, -90f);
-            projectile.GetComponent<PhysicalBehaviour>().SpawnSpawnParticles = false;
-            ModResources.SetMass(projectile, 2f);
-            projectile.GetComponent<SpriteRenderer>().sprite = sprites[2];
-            ModResources.colliderfix(projectile);
-            projectile.transform.position += transform.right * 0.2f;
-
-            // Add DebrisComponent so both objects can be removed on "Clear debris"
-            projectile.AddComponent<DebrisComponent>();
-            gameObject.AddComponent<DebrisComponent>();
-
-            // Instead of an explosion that effect other objects around it, both the case and bullet are pushed in the opposite direction
-            projectile.GetComponent<Rigidbody2D>().AddForce(transform.right.normalized * 9600f, ForceMode2D.Force);
-            GetComponent<Rigidbody2D>().AddForce(-transform.right.normalized * 9600f, ForceMode2D.Force);
-            // Add particle effects for a "fake" explosion
-            ModAPI.CreateParticleEffect("Flash", transform.position + transform.right * 0.1f);
-            AudioSource ias;
-            ias = gameObject.AddComponent<AudioSource>();
-            ias.clip = clips[UnityEngine.Random.Range(0, clips.Length)];
-            globalinstance.AddAudioSource(ias, false);
-            ias.Play();
-            globalinstance.RemoveAudioSource(ias);
-       }
     }
 }
